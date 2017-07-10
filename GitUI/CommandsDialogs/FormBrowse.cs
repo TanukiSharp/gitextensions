@@ -3335,9 +3335,31 @@ namespace GitUI.CommandsDialogs
             }
         }
 
+        private void PreventToolStripSplitButtonClosing(ToolStripSplitButton control)
+        {
+            if (toolStripBranchFilterComboBox.Focused == false && toolStripRevisionFilterTextBox.Focused == false)
+            {
+                control.Tag = this.FindFocusedControl();
+                control.DropDownClosed += ToolStripSplitButtonDropDownClosed;
+                toolStripBranchFilterComboBox.Focus();
+            }
+        }
+
+        private void ToolStripSplitButtonDropDownClosed(object sender, EventArgs e)
+        {
+            var control = sender as ToolStripSplitButton;
+            control.DropDownClosed -= ToolStripSplitButtonDropDownClosed;
+            if (control.Tag != null)
+            {
+                ((Control)control.Tag).Focus();
+                control.Tag = null;
+            }
+        }
+
         private void toolStripButtonLevelUp_DropDownOpening(object sender, EventArgs e)
         {
             LoadSubmodulesIntoDropDownMenu();
+            PreventToolStripSplitButtonClosing((ToolStripSplitButton)sender);
         }
 
         private void RemoveSubmoduleButtons()
@@ -3675,6 +3697,7 @@ namespace GitUI.CommandsDialogs
         private void toolStripButtonPull_DropDownOpened(object sender, EventArgs e)
         {
             setNextPullActionAsDefaultToolStripMenuItem.Checked = Settings.SetNextPullActionAsDefault;
+            PreventToolStripSplitButtonClosing((ToolStripSplitButton)sender);
         }
 
         private void FormBrowse_Activated(object sender, EventArgs e)
@@ -3931,6 +3954,11 @@ namespace GitUI.CommandsDialogs
                 var newModule = new GitModule(formCreateWorktree.WorktreeDirectory);
                 SetGitModule(this, new GitModuleEventArgs(newModule));
             }
+        }
+
+        private void toolStripSplitStash_DropDownOpened(object sender, EventArgs e)
+        {
+            PreventToolStripSplitButtonClosing((ToolStripSplitButton)sender);
         }
     }
 }
